@@ -1,2 +1,2 @@
-# Appunti Ricerca Operativa
-Uso questa repository per caricare i miei appunti di ricerca operativa.
+# Appunti Intelligenza Artificiale
+Uso questa repository per caricare i miei appunti di intelligenza artificiale.

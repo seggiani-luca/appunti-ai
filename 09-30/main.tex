@@ -17,7 +17,7 @@
 \usepackage{standalone}
 
 % imposta il titolo
-\title{Appunti Ricerca Operativa}
+\title{Appunti Intelligenza Artificiale}
 \author{Luca Seggiani}
 \date{2024}
 
@@ -193,37 +193,84 @@
 \pagestyle{fancy}
 
 % testo
-\subsection{Calcolo dei vertici}
-Troviamo adesso il modo di calcolare i vertici del poliedro di un problema LP in forma primale standard.
+\subsection{Agenti logici}
+Vediamo adesso l'implementazione di \textbf{agenti logici}, cioè agenti che si basano su una certa \textbf{rappresentazione}, detta \textbf{base di conoscenza} (KB, \textit{Knowledge Base}) per immagazzinare \textbf{proposizioni} su ciò che hanno imparato riguardo all'ambiente esterno, e fare \textbf{inferenze}, sulla base di queste proposizioni, rispetto a informazioni non conosciute. Le proposizioni sono legate ad aspetti reali dell'ambiente esterno mediante una determinata \textbf{semantica}.
 
-Avevamo già dato la definizione di vertice come punto non ottenibile come combinazione convessa degli altri punti del poliedro (definizione 4.6).
-Questa definizione è corretta ma poco utile per il calcolo procedurale.
-Dimostriamo quindi un teorema utile.
+Possiamo schematizzare il funzionamento della KB, e la sua corrispondenza con l'ambiente esterno, come segue:
 
-Innanzitutto, assumiamo che in generale, per un problema LP $ \mathcal{P} $ con $n$ variabili decisionali e $m$ vincoli, si ha che $n < m$.
-A questo punto, possiamo dire:
-\begin{definition}{Soluzione di base primale}
-	Sia dato un problema LP $\mathcal{P}$ in forma primale standard con $n < m$.
-	Sia $B \subseteq \{ 1, ..., m \}$ un sottoinsieme di indici di riga tale che $\mathrm{card}(B) = n$.
-	A questo punto, sia $A_B$ la sottomatrice di $A$ con con righe indicate da $B$, e $b_B$ il sottovettore colonna di $B$ con righe indicate da $B$, con det $\det{A_B} \neq 0$.
-	Allora la soluzione di:
-	$$
-	A_Bx = b_B
-	$$
-	è detta soluzione di base primale di $\mathcal{P}$.
-\end{definition}
-da qui possiamo dimostrare il teorema:
-\begin{theorem}{Caratterizzazione dei vertici primali}
-	Su un problema in forma primale standard, un punto $x$ del poliedro $P$ è un vertice di $P$ se e solo se è una soluzione di base primale ammissibile, ovvero:
-	$$ 
-	x \in \mathrm{vert}(P) \Leftrightarrow \text{$x$ è soluzione di base primale}
-	$$
-\end{theorem}
+\begin{center}
+	\begin{tikzpicture}
+		\draw[dashed] (-1.5,0) -- (13, 0);
 
-Riflettiamo un'attimo su questo risultato: se la definizione di vertice era effettivamente sufficiente a dichiarare \textit{quali} erano i vertici, un teorema di caratterizzazione come quello sopra riportato ci fornisce una procedura per calcolarli tutti a partire da $P$.
-In questo, definizione e teorema di caratterizzazione sono effettivamente intercambiabili, ovvero:
-$$
-\text{definizione} \Leftrightarrow \text{teorema di caratterizzazione}
-$$
+		\draw (2,0.5) rectangle ++(3,1);
+		\node[anchor=center] at (3.5, 1) {Proposizioni};
+
+		\draw (9,0.5) rectangle ++(3,1);
+		\node[anchor=center] at (10.5, 1) {Proposizione};
+
+		\draw (2,-0.5) rectangle ++(3,-1);
+		\node[anchor=center] at (3.5, -1) {Aspetti reali};
+
+		\draw (9,-0.5) rectangle ++(3,-1);
+		\node[anchor=center] at (10.5, -1) {Aspetto reale};
+
+		\draw[->] (5, 1) -- node[above, pos=0.5] {\textit{Inferenza}} (9, 1);
+		\draw[->] (5, -1) -- node[above, pos=0.5] {\textit{Conseguenza}} (9, -1);
+
+		\draw[->] (3.5,0.5) -- node[right, pos=0.3] {\textit{Semantica}} (3.5,-0.5);
+		\draw[->] (10.5,0.5) -- node[right, pos=0.3] {\textit{Semantica}} (10.5,-0.5);
+
+		\node[anchor=center] at (0, 0.5) {\textit{Rappresentazione}};
+		\node[anchor=center] at (0, -0.5) {\textit{Ambiente esterno}};
+	\end{tikzpicture}
+\end{center}
+
+La conoscenza che l'agente ottiene può essere fornita manualmente, cioè in forma di \textbf{assiomi} o conoscenza di \textit{background} (magari in un agente potrebbe essere "precaricata" della conoscenza riguardo allo stato iniziale del problema), estratta dai dati dei sensori, o ricavata dall'esperienza.
+Un agente logico dovrebbe essere in grado di fare inferenze in quanto spesso le informazioni che ha sull'ambiente esterno  è \textbf{parziale} o \textbf{incompleta}.
+
+Una KB deve poi rappresentare questa conoscenza attraverso un linguaggio, che dovrebbe essere sufficientemente \textbf{espressivo} da poter rappresentare la realtà dell'ambiente esterno, ma non troppo complesso da impedire di effettuare inferenze in modo efficiente. 
+
+Esistono due approcci all'implementazione di una KB:
+\begin{itemize}
+	\item \textbf{Dichiarativo:} si concentra su una rappresentazione a \textbf{livello di conoscenza} dei fatti, cioè informazioni riguardo a \textit{cosa} è vero. In sistemi di questo tipo, si usano primitive di scrittura (\textsc{Tell}) e query (\textsc{Ask}) sulla KB, partendo da un insieme di informazioni nullo o comunque limitato, fino ad arrivare ad avere una serie di conoscenze comprensive dell'ambiente esterno. I dettagli delle operazioni che poi l'agente andrà a svolgere, il cosiddetto \textbf{livello di implementazione}, sono mantenuti separati dalla KB.
+	\item \textbf{Procedurale:} si concentra su una rappresentazione di \textit{come} effettuare operazioni. Invece di implementare sistemi che possano immagazzinare proposizioni sull'ambiente esterno, si va a codificare l'informazione direttamente nel codice, attraverso procedure, algoritmi, o come avevamo visto nei modelli a riflesso, regole "if-then".
+\end{itemize}
+
+\subsubsection{Basi di conoscenza}
+Come abbiamo detto, una base di conoscenza è formata da una serie di formule (formule \textit{atomiche}, cioè proposizioni) contenenti informazioni riguardo all'ambiente esterno e codificate in un certo \textbf{linguaggio formale}.
+Si possono definire alcune primitive per l'interazione con la KB:
+\begin{itemize}
+	\item \textsc{\textbf{Tell}}: aggiungi una nuova proposizione alla KB;
+	\item \textsc{\textbf{Ask}}: richiedi informazioni dalla KB;
+	\item \textsc{\textbf{Retract}}: elimina informazioni dalla KB.
+\end{itemize}
+
+La KB si basa sui fatti che già conosce per ricavare inferenze o \textbf{deduzioni logiche} $\alpha$, della forma:
+$$ \text{KB} \models \alpha $$
+
+L'agente logico si interfaccia con la KB attraverso le primitive sopra definita, e implementa effettivamente un ciclo \textsc{Tell}-\textsc{Ask}-\textsc{Tell} del tipo:
+
+\begin{algorithm}
+\caption{Agente logico}
+\begin{algorithmic}
+	\STATE \textbf{Input:} le percezioni correnti % input
+	\STATE \textbf{Output:} la prossima azione da eseguire % output
+	% body
+	\STATE \textsc{Tell}(percezioni correnti)
+	\STATE prossima azione $\leftarrow$ \textsc{ASK}(KB)
+	\STATE \textsc{TELL}(prossima azione)
+	\RETURN prossima azione
+\end{algorithmic}
+\end{algorithm}
+
+Ovvero, l'agente invia le sue percezioni correnti alla KB, e richiede la prossima azione da eseguire.
+Invia poi l'azione scelta alla KB (così che possa diventare parte delle informazioni note), e la restituisce.
+
+\subsubsection{Differenza fra KB e DB}
+Una KB potrebbe sembrare simile ad un comune database: la differenza è che il database si occupa solo di ricavare fatti specifici, senza possibilità di deduzione di alcun tipo.
+La KB è invece progettata per mantenere una rappresentazione strutturata dei fatti, specifici o generali, come riferiti a oggetti reali, e permettere quindi inferenze su quei fatti. 
+
+\subsection{Logica proposizionale}
+
 
 \end{document}

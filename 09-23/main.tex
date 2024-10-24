@@ -1,3 +1,4 @@
+
 \documentclass[a4paper,11pt]{article}
 \usepackage[a4paper, margin=8em]{geometry}
 
@@ -16,9 +17,13 @@
 \usepackage{standalone}
 
 % imposta il titolo
-\title{Appunti Ricerca Operativa}
+\title{Appunti Intelligenza Artificiale}
 \author{Luca Seggiani}
-\date{23-09-24}
+\date{2024}
+
+% disegni
+\usepackage{pgfplots}
+\pgfplotsset{width=10cm,compat=1.9}
 
 % imposta lo stile
 % usa helvetica
@@ -31,6 +36,26 @@
 \renewcommand{\rmdefault}{ppl}
 \renewcommand{\sfdefault}{phv}
 \renewcommand{\ttdefault}{lmtt}
+
+% disponi il titolo
+\makeatletter
+\renewcommand{\maketitle} {
+	\begin{center} 
+		\begin{minipage}[t]{.8\textwidth}
+			\textsf{\huge\bfseries \@title} 
+		\end{minipage}%
+		\begin{minipage}[t]{.2\textwidth}
+			\raggedleft \vspace{-1.65em}
+			\textsf{\small \@author} \vfill
+			\textsf{\small \@date}
+		\end{minipage}
+		\par
+	\end{center}
+
+	\thispagestyle{empty}
+	\pagestyle{fancy}
+}
+\makeatother
 
 % disponi teoremi
 \usepackage{tcolorbox}
@@ -71,9 +96,9 @@
 		backgroundcolor=\color{black!5}, 
 		commentstyle=\color{codegreen},
 		keywordstyle=\bfseries\color{magenta},
-		numberstyle=\sffamily\tiny\color{black!60},
+		numberstyle=\sffamily\sffamily\tiny\color{black!60},
 		stringstyle=\color{green!50!black},
-		basicstyle=\ttfamily\footnotesize,
+		basicstyle=\ttfamily\sffamily\footnotesize,
 		breakatwhitespace=false,         
 		breaklines=true,                 
 		captionpos=b,                    
@@ -88,7 +113,7 @@
 
 \lstdefinestyle{shellstyle}{
 		backgroundcolor=\color{black!5}, 
-		basicstyle=\ttfamily\footnotesize\color{black}, 
+		basicstyle=\ttfamily\sffamily\footnotesize\color{black}, 
 		commentstyle=\color{black}, 
 		keywordstyle=\color{black},
 		numberstyle=\color{black!5},
@@ -158,11 +183,8 @@
 \fancyhead[R]{\raisebox{1ex}[0pt][0pt]{\sffamily{\@author}}}
 \makeatother
 
-% disegni
-\usepackage{pgfplots}
-\pgfplotsset{width=10cm,compat=1.9}
-
 \begin{document}
+
 % sezione (data)
 \section{Lezione del 23-09-24}
 
@@ -172,212 +194,610 @@
 
 % testo
 \subsection{Introduzione}
+Il corso si pone di fornire un'introduzione, almeno a livello culturale, alla storia dell'intelligenza artificiale dalle origini fino ad ora, e alcune specifiche sui modelli più usati oggi.
 
-\subsubsection{Programma del corso}
-Il corso di ricerca operativa si divide in 4 parti:
 
-\begin{enumerate}
-	\item Modello di Programmazione Lineare;
-	\item Programmazione Lineare su reti, ergo programmazione lineare su grafi;
-	\item Programmazione Lineare intera, ergo programmazione lineare col vincolo $x \in \mathbb{Z}^n$;
-	\item Programmazione Non Lineare.
-\end{enumerate}
-
-Le prime 3 parti hanno come prerequisiti l'algebra lineare: in particolare operazioni matriciali, prodotti scalari, sistemi lineari, teorema di Rouché-Capelli.
-La quarta parte richiede invece conoscenze di Analisi II.
-
-\subsubsection{Un problema di programmazione lineare}
-
-La ricerca operativa si occupa di risolvere problemi di ottimizzazione con variabili decisionali e risorse limitate.
-Poniamo un problema di esempio:
-
-\begin{problem}{Produzione}
-Una ditta produce due prodotti: \textbf{laminato A} e \textbf{laminato B}.
-Ogni prodotto deve passare attraverso diversi reparti: il reparto \textbf{materie prime}, il reparto \textbf{taglio}, il reparto \textbf{finiture A} e il reparto \textbf{finiture B}.
-Il guadagno è rispettivamente di 8.4 e 11.2 (unità di misura irrilevante) per ogni tipo di laminato.
-
-Ora, nel reparto materie prime, il laminato A occupa 30, ore, e lo B 20 ore.
-Nel reparto taglio il laminato A occupa 10 ore e lo B 20 ore.
-Il laminato A occupa poi 20 ore nel reparto finiture A, mentre il laminato B occupa 30 ore nel reparto finiture B.
-I reparti hanno a disposizione, rispettivamente, 120, 80, 62 e 105 ore.
-Possiamo porre queste informazioni in forma tabulare:
-
-	\center \rowcolors{2}{green!10}{green!40!black!20}
-	\begin{tabular} { | c || c | c | c | }
-		\hline
-		\bfseries Reparto & \bfseries Capienza & \bfseries Laminato A & \bfseries Laminato B \\
-		\hline 
-		Materie prime & 120 & 30 & 20 \\
-		Taglio & 80 & 10 & 20 \\
-		Finiture A & 62 & 20 & / \\
-		Finiture B & 105 & / & 30 \\
-		\hline
-		\textbf{Guadagno} & & 8.4 & 11.2 \\
-		\hline
-	\end{tabular}
-
-	\par\bigskip
-
-Quello che ci interessa è chiaramente massimizzare il guadagno.
-\end{problem}
-
-Decidiamo di modellizzare questa situazione con un modello matematico.
-
-Il guadagno che abbiamo dai laminati rappresenta una \textbf{funzione obiettivo}, ovvero la funzione che vogliamo ottimizzare.
-Ottimizzare significa trovare il modo migliore di massimizzare o minimizzare i valori della funzione agendo sulle variabili decisionali.
-La funzione obiettivo va ottimizzata rispettando determinati \textbf{vincoli}, che modellizzano il fatto che le risorse sono limitate.
-Una \textbf{soluzione ammissibile} è una qualsiasi soluzione che rispetta i vincoli del problema.
-Chiamiamo quindi \textbf{regione ammissibile} l'insieme di tutte le soluzioni ammissibili.
-All'interno della regione ammissibile c'è la soluzione che cerchiamo, ovvero la \textbf{soluzione ottima}.
-
-Decidiamo quindi le \textbf{variabili decisionali}, ed esplicitiamo la funzione obiettivo e i vincoli.
-
-In questo caso le variabili decisionali saranno le quantità di laminato A e B da produrre, che individuano un punto in $ \mathbb{R}^2 $ denominato $ ( x_A, x_B ) $. 
-Decidere di usare la soluzione $ (1,1) $ significa decidere di produrre 1 unità di laminato A e 1 unità di laminato B, per un guadagno complessivo di $ 8.4 + 11.2 = 19.6 $.
-
-La funzione obiettivo sarà quindi:
-
-$$ f(x_A, x_B) = 8.4 x_A + 11.2 x_B, \quad f: \mathbb{R}^2 \rightarrow \mathbb{R} $$
-
-lineare, e noi saremo interessati a:
-
-$$ \max(f(x_A, x_B)) $$
-
-rispettando i vincoli, ergo nella regione ammissibile.
-Per esprimere questi vincoli, cioè il tempo limitato all'interno di ogni reparto, introduciamo il sistema di disequazioni:
-
-\[
-	\begin{cases}
-		30 x_A + 20 x_B \leq 120 \\
-		10 x_A + 20 x_B \leq 80	\\
-		20 x_A + 0 x_B \leq 62 \\	
-		0 x_A + 30 x_B \leq 105 \\
-		- x_A \leq 0 \\
-		- x_B \leq 0 \\
-	\end{cases}
-\]
-
-dove notiamo le ultime due disequazioni indicano la positività di $x_A$ e $x_B$, in forma $ f(x_A, x_B) \leq b $.
-Questo sistema non indica altro che la regione ammissibile.
-
-Possiamo riscrivere questo modello usando la notazione dell'algebra lineare.
-La funzione obiettiva e i vincoli diventano semplicemente:
-
-\[
-	\begin{cases}
-		\max(c^T \cdot x) \\
-		A \cdot x \leq b	
-	\end{cases}
-\]
-
-dove $c$ rappresenta il vettore dei costi, $A$ rappresenta la matrice dei costi a $b$ il vettore dei vincoli.
-$c$ è trasposto per indicare prodotto fra vettori.
-
-Possiamo scrivere $A$, $b$ e $c$ per esteso:
-
-$$
-A:
-\begin{pmatrix}
-	30 & 20 \\
-	10 & 20 \\
-	20 & 0 \\
-	0 & 30 \\
-	-1 & 0 \\
-	0 & -1
-\end{pmatrix}, \quad
-b:
-\begin{pmatrix}
-	120 \\
-	80 \\
-	62 \\ 
-	105 \\ 
-	0 \\ 
-	0 
-\end{pmatrix}, \quad 
-c:
-\begin{pmatrix}
-	8.4 \\
-	11.2 \\
-\end{pmatrix}
-$$
-
-Notiamo come $A$ e $b$ hanno dimensione verticale $ 4 + 2 = 6 $, dai 4 vincoli superiori e i 2 vincoli inferiori.
-
-A questo punto, possiamo disegnare la regione ammissibile come l'intersezione dei semipiani individuati da ogni singola disuguaglianza.
-
-Si riporta un grafico:
-
-\begin{center}
-
-\begin{tikzpicture}
-\begin{axis}[
-    axis lines = middle,
-    xlabel = {$x_A$},
-    ylabel = {$x_B$},
-    xmin=0, xmax=7.9,
-    ymin=0, ymax=3.9,
-    domain=0:10,
-    samples=100,
-    width=15cm, height=7cm,
-    legend pos=north east
-  ]
-
-% regione ammissibile
-
-	\addplot[fill=gray, opacity=0.4] 
-    coordinates {
-			(0, 0)
-			(3.1, 0)
-			(3.1, 1.35)
-			(2,3)
-			(1, 3.5)
-			(0, 3.5)
-		};
-
-% rette
-
-\addplot[domain=2:3.1, thick, blue] {6 - 1.5*x}; 
-\addlegendentry{$ 30 x_A + 20 x_B \leq 120 $}
-
-\addplot[domain=1:2, thick, green] {4 - 0.5*x}; 
-\addlegendentry{$ 10 x_A + 20 x_B \leq 80 $}
-
-\addplot[thick, purple] coordinates {(3.1, 0) (3.1, 1.35)};
-\addlegendentry{$ 20 x_A + 0 x_B \leq 62 $}
-
-\addplot[domain=0:1, thick, red] {3.5}; 
-\addlegendentry{$ 0 x_A + 30 x_B \leq 105 $}
-	
-\end{axis}
-\end{tikzpicture}
-
-\end{center}
-
-In diversi colori sono riportati i margini delle disequazioni, mentre in grigio è evidenziata la regione ammissibile.
-Qualsiasi punto all'interno della regione ammissibile vale come soluzione, e almeno uno di essi è soluzione ottimale.
-
-\par\smallskip
-
-Il modello finora descritto prende il nome di modello di programmazione lineare, e permette di formulare problemi di programmazione lineare (LP).
-
-\begin{definition}{Problema di programmazione lineare (1)}
-Un problema di programmazione lineare (LP) riguarda l'ottimizzazione di una funzione lineare in più variabili
-soggetta a vincoli di tipo $ =, \ \leq $ e $ \geq $, ovvero in forma:
-\[
-	\begin{cases}
-			\min / \max(c^T \cdot x) \\
-			A_i x \leq b \\
-			B_j x \geq d \\
-			C_k x = e \\
-	\end{cases}
-\]
+\subsubsection{Cos'è l'intelligenza artificiale?}
+Con intelligenza artificiale ci riferiamo ad una serie di caratteristiche che vorremo ottenere da un particolare \textbf{agente}.
+\begin{definition}{Agente}
+	Chiamiamo \textbf{agente} un'entità capace di:
+\begin{itemize}
+	\item \textbf{Percepire}, attraverso \textit{sensori}, informazioni dal suo ambiente esterno. Diremo sempre che una \textbf{percezione} segue dai rilevamenti dei sensori;
+	\item \textbf{Agire}, attraverso \textit{attuatori}, sull'ambiente esterno.
+\end{itemize}
 \end{definition}
 
-"Programmazione" qui non ha alcun legame col concetto di programmazione informatica, ma si riferisce al fatto che il modello è effettivamente \textit{programmabile}.
+Graficamente, rendiamo l'agente attraverso lo schema:
 
-"Lineare" si riferisce alla linearità dei problemi che ci permette di risolvere (e quindi del modello).
+\begin{center}
+% Gradient Info
+  
+\tikzset {_3t0x4e5ul/.code = {\pgfsetadditionalshadetransform{ \pgftransformshift{\pgfpoint{0 bp } { 0 bp }  }  \pgftransformrotate{0 }  \pgftransformscale{2 }  }}}
+\pgfdeclarehorizontalshading{_z0prk09xy}{150bp}{rgb(0bp)=(1,1,1);
+rgb(37.5bp)=(1,1,1);
+rgb(49.75bp)=(1,1,1);
+rgb(50bp)=(0.77,0.95,1);
+rgb(62.48511723109654bp)=(0.77,0.95,1);
+rgb(100bp)=(0.77,0.95,1)}
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1, font =\sffamily]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Rounded Rect [id:dp5295555913074174] 
+\path  [shading=_z0prk09xy,_3t0x4e5ul] (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for fading 
+ \draw   (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for border 
+
+%Rounded Rect [id:dp8525636205326067] 
+\draw  [fill={rgb, 255:red, 93; green, 216; blue, 255 }  ,fill opacity=1 ] (280,50.67) .. controls (280,44.78) and (284.78,40) .. (290.67,40) -- (309.33,40) .. controls (315.22,40) and (320,44.78) .. (320,50.67) -- (320,249.33) .. controls (320,255.22) and (315.22,260) .. (309.33,260) -- (290.67,260) .. controls (284.78,260) and (280,255.22) .. (280,249.33) -- cycle ;
+%Straight Lines [id:da9249822923109696] 
+\draw    (300,60) -- (242,60) ;
+\draw [shift={(240,60)}, rotate = 360] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da8820440473887884] 
+\draw    (240,240) -- (298,240) ;
+\draw [shift={(300,240)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da20558832649423409] 
+\draw    (204,80) -- (204,214) ;
+\draw [shift={(204,216)}, rotate = 270] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (178,52) node [anchor=north west][inner sep=0.75pt]   [align=left] {Sensori};
+% Text Node
+\draw (174,232) node [anchor=north west][inner sep=0.75pt]   [align=left] {Attuatori};
+% Text Node
+\draw (307,119) node [anchor=north west][inner sep=0.75pt]  [rotate=-90] [align=left] {Ambiente};
+% Text Node
+\draw (52,49) node [anchor=north west][inner sep=0.75pt]   [align=left] {Agente};
 
 
+\end{tikzpicture}
+\end{center}
 
+Notiamo che nessun agente può esistere senza un'ambiente esterno, che sarà lo spazio dove i modelli che studieremo cercheranno di risolvere problemi.
+
+Possiamo quindi dire che, da un agente \textbf{intelligente}, ci aspettiamo anche le proprietà di:
+\begin{itemize}
+	\item \textbf{Imparare}, a partire da osservazioni, fino ad inferire leggi;
+	\item \textbf{Ragionare} e \textbf{pianificare}, e quindi generare nuove informazioni;
+	\item \textbf{Interagire}, e quindi scambiare informazioni, e modificare il suo ambiente.
+\end{itemize}
+
+I due modelli fondamentali che prenderemo in esempio sono il \textbf{cervello umano} e l'\textbf{agente razionale} (che potrebbe essere, volendo, anche più razionale della sua controparte umana).
+
+Faremo poi una distinizione fra \textbf{pensiero} e \textbf{comportamento}: non è sempre rilevante farci domande sulla coscienza o meno del modello preso in analisi nel prendere le sue decisioni.
+
+Possiamo quindi distribuire queste caratteristiche, fra di loro ortogonali, a formare quattro categorie:
+\begin{table}[h!]
+	\center 
+	\begin{tabular} { c | c  }
+		Sistemi che pensano come umani & Sistemi che pensano razionalmente \\ 
+		\hline 
+		Sistemi che si comportano come umani & Sistemi che si comportano razionalmente
+	\end{tabular}
+\end{table}
+
+Uno dei test più famosi per distinguere il comportamento di un programma \textit{intelligente} è il cosiddetto \textbf{test di Turing}, il cui predicato è che per essere intelligente, un programma dovrebbe essere indistinguibile, a un osservatore esterno che comunica per via scritta, da un essere umano.
+Alcuni ricercatori inseriscono poi nel test di Turing altre facoltà, quali quelle di comunicazione in linguaggio naturale, interazione fisica con l'ambiente ecc...
+In ogni caso, per passare il test di Turing nella sua formulazione originale, un programma avrebbe bisogno di:
+\begin{itemize}
+	\item Elaborare il \textbf{linguaggio naturale}, quindi comprendere espressioni e generarne di nuove;
+	\item \textbf{Rappresentare l'informazione} che conosce, attraverso un qualche tipo di \textbf{knowledge base};
+	\item \textbf{Ragionare automaticamente} sulle informazioni ottenute, attraverso algoritmi di ricerca, algoritmi di inferenza, ecc...;
+	\item \textbf{Apprendere automaticamente} nuove informazioni, attraverso varie rappresentazioni dell'ambiente esterno, tecniche di \textbf{machine learning}, ecc....
+\end{itemize}
+
+Questi, ad oggi, rappresentano i rami principali dell'IA, almeno a livello di agenti software.
+Altre aree di sviluppo sono rappresentate dalla \textbf{visione artificiale}, dalla \textbf{robotica} (ad esempio per creare robot intelligenti, capaci di muoversi nello spazio), ecc...
+
+\subsubsection{Pensare come umani}
+Per pensare come umani, dobbiamo prima capire come pensano gli umani.
+Alcune tecniche possono essere:
+\begin{itemize}
+	\item \textbf{Introspezione}, cioè cercare di catturare i pensieri mentre ci passano per la testa;
+	\item \textbf{Esperimenti} fisiologici o sociologici, che si concentrano invece sull'effetto che il pensiero ha sul mondo esterno, sotto forma di azioni;
+	\item \textbf{Imaging} cerebrale (risonanza magnetica, ecc..), che mette in evidenza cosa accade fisicamente all'interno del cervello mentre si pensa.
+\end{itemize}
+
+Ammesso di poter estrapolare qualcosa di utile da questi strumenti, dobbiamo poi ricordare che gli umani possono essere irrazionali, commettere errori, e generalmente non sono agenti perfetti.
+
+Inoltre, spesso nell'ingegneria ci \textit{ispiriamo} alla natura, per poi ricavare sistemi migliori, più ottimizzati o più semplici.
+Un'ingegnere aerospaziale progetta aeromobili che possono volare grazie a propri principi specifici, e non macchine che si comportano come \textit{uccelli}.
+
+\subsubsection{Agenti logici}
+Invece di pensare come umani, potremmo decidere di pensare in modo razionale. 
+Questo richiederebbe scoprire \textbf{leggi di pensiero} definite a priori: quelle che definisce la logica.
+Chiamiamo \textbf{agente logico} un modello che applica queste leggi, o regole, per ottenere uno scopo prestabilito.
+
+Modelli di questo tipo sono molto abili a formulare soluzioni di problemi matematici, e in generale a svolgere compiti dove l'ambiente esterno è le azioni concesse sono completamente conosciute.
+Il loro problema invece è che non sono in grado di rispondere a informazioni incerte: ogni ambiente reale invece, avrà inevitabilmente un certo grado di incertezza nella sua rappresentazione.
+Inoltre, cercare sempre la risposta ottima potrebbe richiedere troppe risorse dal punto di vista computazionale per essere effettivamente utile.
+
+Si descrive così il classico diverbio fra \textit{fare le cose in modo perfetto}, cioè applicando leggi matematiche potenzialmente poco pratiche alla risoluzione di problemi, e \textit{fare le cose alla meglio}, cioè usando la statistica, varie euristiche e a volte addirittura la scelta casuale per ottenere soluzioni che non sono le ottime, ma le migliori possibili sotto determinati vincoli.
+
+Paradossalmente, sembrerebbe che i nostri cervelli adottano la seconda filosofia.
+Infatti, in passato, le ricerche si sono concentrate a lungo sul creare agenti perfettamente razionali con risultati moderati, mentre solo di recente si ha avuto una spinta nel creare modelli più approssimativi, ma che sono risultati più promettenti nella simulazione di un comportamento, effettivamente, \textit{umano}. 
+
+Un modello migliore potrebbe essere quello di un \textbf{agente razionale}, che si comporta in maniera tale da ottenere il miglior possibile risultato, ovvero \textit{fa la cosa giusta}.
+
+\subsection{Agenti razionali}
+Abbiamo detto che un agente è un'entità che \textbf{percepisce} (attraverso sensori) e \textbf{agisce} (attraverso attuatori).
+L'agente razionale cerca di adottare le soluzioni più ottime possibili in ogni dato momento, basandosi su quello che può ragionevolmente assumere dall'ambiente esterno.
+L'agente razionale non è \textbf{perfetto}, cioè non conosce sempre la soluzione migliore, e non è \textbf{onniscente}, cioè non prevede il futuro.
+
+Per effettuare i suoi compiti, diversi agenti adottano diverse strategie.
+L'approccio generale è quello di selezionare l'azione che massimizza la \textbf{utilità aspettata}, cioè l'opzione che appare, localmente, di portare un maggiore grado di \textit{felicità} rispetto alle altre.
+
+Un modello di questo tipo non usa sempre l'inferenza logica, ma a volte adotta linee di pensiero più intuitive: conviene togliere la mano dalla pentola bollente prima di pensare alle conseguenze.
+Inoltre, a volte non c'è una cosa migliore da fare, ma bisogna comunque fare una scelta.
+
+Infine, l'ultima differenza fra questi modelli e i modelli logici è che decidiamo, di interessarci più a come il programma agisce, e non al modo in cui "pensa" ragionevolmente al modo di approcciare il problema.
+
+\subsubsection{Operazioni}
+Per permettere al programma di agire ragionevolmente, si stabilisce una \textbf{metrica di performance}, che valuta la sequenza di azioni operate dall'agente sull'ambiente.
+Possiamo quindi descrivere un operazione effettuata dall'agente attraverso:
+\begin{itemize}
+	\item Una metrica di performance;
+	\item L'ambiente su cui viene effettuata;
+	\item Attuatori e sensori dell'agente che la effettua.
+\end{itemize}
+
+Chiamiamo questo schema \textbf{PEAS}, dall'inglese \textit{Performance measure, Environment, Actuators and Sensors}.
+
+Ad esempio, per un modello di guida automatica, la metrica sarà la velocità, la sicurezza, il comfort dei passeggeri, ecc... l'ambiente sarà la strada, gli attuatori saranno i comandi della vettura e i sensori saranno telecamere o radar posti in maniera tale da consentire la vista (\textit{computer vision}) della strada, oppure ancora saranno l'odometro della vettura, eventuali accellerometri, ecc...
+
+\subsubsection{Ambiente}
+Abbiamo visto come l'ambiente è una componente fondamentale delle operazioni dell'agente.
+Questo può essere così caratterizzato:
+\begin{itemize}
+	\item \textbf{Osservabile / parzialmente osservabile:} se i sensori dell'agente forniscono allo stesso una vista completa di tutte le variabili dell'ambiente in qualsiasi momento, abbiamo che quest'ultimo è completamente \textbf{osservabile}. Questi ambienti sono utili, in quanto permettono all'agente di non mantenere una rappresentazione interna dell'ambiente al suo interno. Nella stragrande maggioranza dei casì, però, i sensori saranno imprecisi, i problemi difficili da osservare se non semplicemente troppo grandi da essere completamente osservabili. In questo caso si dicono \textbf{parzialmente osservabili}, con diverse gradazioni di \textbf{osservabilità}. Il caso più radicale è quello di ambienti \textbf{non osservabili}, cioè dove l'agente non può usare sensori in primo luogo.
+	\item \textbf{Deterministico / non deterministico / stocastico / strategico:} se il prossimo stato dell'ambiente è completamente determinato dal suo stato attuale e dalle azioni dell'agente, si ha che l'ambiente è \textbf{deterministico}. In teoria, un'ambiente osservabile e deterministico non ammette incertezze, mentre ambienti non osservabili potrebbero \textit{sembrare} non deterministici, solo per la mancanza di informazioni sul loro conto.
+		Si fa una nota fra i significati di non deterministico, \textbf{stocastico} e \textbf{strategico}:
+		\begin{itemize}
+			\item \textbf{Non deterministico:} si dice di ambienti che possono presentare diverse e imprevedibili possibilità future;
+			\item \textbf{Stocastico:} si dice di ambienti che possono presentare diverse probabilità future, di cui si conoscono le probabilità;
+			\item \textbf{Strategico:} si riferisce a problemi, sopratutto multiagente, dove il modello deve utilizzare approcci strategici per comportarsi nel modo migliore possibile in previsione di risultanti imprevedibili, da parte dell'ambiente come degli altri agenti.
+		\end{itemize}
+	\item \textbf{Episodico / sequenziale:} in un ambiente episodico, l'esperienza del modello è divisa in episodi separati. Le azioni intraprese in un episodio non hanno importanza negli episodi successivi. Al contrario, in un ambiente sequenziale ogni decisione corrente potrebbe influenzare il futuro (vedi sopra, ambiente strategico);
+	\item \textbf{Statico / semidinamico / dinamico:} si riferisce alla temporizzazione dell'ambiente. Un ambiente statico non varia mentre l'agente sta deliberando, mentre un'ambiente dinamico cambia continuamente e richiede risposte tempestive del modello. Un ambiente semidinamico, in particolare, non varia di per sé, ma spinge comunque l'agente ad agire il più velocemente possibile (ad esempio, per rispettare un tempo limite);
+	\item \textbf{Discreto / continuo:} si riferisce sempre alla temporizzazione dell'ambiente, e al modo in cui è disposto il suo spazio. Giochi come gli scacchi hanno divisioni distinte di tempo e spazio (mosse e caselle), mentre la maggior parte dei problemi reali si svolge su ambiente continuo (output in PWM ad attuatori, sensori che restituiscono distanze in virgola mobile, ecc...);
+	\item \textbf{A singolo agente / multiagente:} un ambiente a singolo agente vede il modello agire da solo nella risoluzione del problema. Un modello multiagente invece prevede più agenti che \textbf{competono} o \textbf{collaborano} per un obiettivo. 
+\end{itemize}
+
+Ad esempio, gli scacchi sono un'ambiente completamente osservabile, strategico, sequenziale, semistatico (diventa statico senza un orologio), discreto e multiagente.
+Il gioco del poker, invece, è solo parzialmente osservabile, strategico e stocastico, sequenziale, statico, discreto e multiagente.
+Infine, l'esempio del taxi di prima era parzialmente osservabile, stocastico, sequenziale, dinamico, continuo e multiagente.
+
+\subsubsection{Tipi di agenti}
+Si può decidere su vari modi di strutturare un agente:
+\begin{itemize}
+	\item \textbf{A riflesso semplice:} usano regole "if-then", applicate sulla loro percezione attuale dell'ambiente (ad esempio, il termostato: \textbf{se} la temperatura è sotto $x$, \textbf{allora} accendi il riscaldamento). Non dispongono di memoria, e quindi hanno una visibilità limitata del passato e del futuro.
+
+\begin{center}
+% Gradient Info
+  
+\tikzset {_3t0x4e5ul/.code = {\pgfsetadditionalshadetransform{ \pgftransformshift{\pgfpoint{0 bp } { 0 bp }  }  \pgftransformrotate{0 }  \pgftransformscale{2 }  }}}
+\pgfdeclarehorizontalshading{_z0prk09xy}{150bp}{rgb(0bp)=(1,1,1);
+rgb(37.5bp)=(1,1,1);
+rgb(49.75bp)=(1,1,1);
+rgb(50bp)=(0.77,0.95,1);
+rgb(62.48511723109654bp)=(0.77,0.95,1);
+rgb(100bp)=(0.77,0.95,1)}
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1, font =\sffamily]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Rounded Rect [id:dp5295555913074174] 
+\path  [shading=_z0prk09xy,_3t0x4e5ul] (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for fading 
+ \draw   (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for border 
+
+%Rounded Rect [id:dp8525636205326067] 
+\draw  [fill={rgb, 255:red, 93; green, 216; blue, 255 }  ,fill opacity=1 ] (280,50.67) .. controls (280,44.78) and (284.78,40) .. (290.67,40) -- (309.33,40) .. controls (315.22,40) and (320,44.78) .. (320,50.67) -- (320,249.33) .. controls (320,255.22) and (315.22,260) .. (309.33,260) -- (290.67,260) .. controls (284.78,260) and (280,255.22) .. (280,249.33) -- cycle ;
+%Straight Lines [id:da9249822923109696] 
+\draw    (300,60) -- (242,60) ;
+\draw [shift={(240,60)}, rotate = 360] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da8820440473887884] 
+\draw    (240,240) -- (298,240) ;
+\draw [shift={(300,240)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da20558832649423409] 
+\draw    (204,80) -- (204,214) ;
+\draw [shift={(204,216)}, rotate = 270] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (178,52) node [anchor=north west][inner sep=0.75pt]   [align=left] {Sensori};
+% Text Node
+\draw (174,232) node [anchor=north west][inner sep=0.75pt]   [align=left] {Attuatori};
+% Text Node
+\draw (307,119) node [anchor=north west][inner sep=0.75pt]  [rotate=-90] [align=left] {Ambiente};
+% Text Node
+\draw (52,49) node [anchor=north west][inner sep=0.75pt]   [align=left] {Agente};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (168,104) -- (243,104) -- (243,124) -- (168,124) -- cycle  ;
+\draw (171,108) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\sffamily\footnotesize] [align=left] {Stato attuale};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (166,157) -- (245,157) -- (245,177) -- (166,177) -- cycle  ;
+\draw (169,161) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Azione scelta};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (54,165) .. controls (54,160.03) and (58.03,156) .. (63,156) -- (127,156) .. controls (131.97,156) and (136,160.03) .. (136,165) -- (136,167) .. controls (136,171.97) and (131.97,176) .. (127,176) -- (63,176) .. controls (58.03,176) and (54,171.97) .. (54,167) -- cycle  ;
+\draw (57,160) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Regole if-then};
+% Connection
+\draw    (136,166.37) -- (164,166.62) ;
+\draw [shift={(166,166.64)}, rotate = 180.52] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+\end{tikzpicture}
+\end{center}
+
+	\item \textbf{A riflesso con stati:} simili al tipo precendente, ma con la caratteristica aggiunta che possono immagazzinare informazioni osservate precedentemente, e quindi ragionare su aspetti non più osservabili dello stato corrente (ad esempio, un robot aspirapolvere, che può ricordare la posizione degli ostacoli dopo averli incontrati la prima volta).
+
+\begin{center}
+% Gradient Info
+  
+\tikzset {_0i3s7pmbc/.code = {\pgfsetadditionalshadetransform{ \pgftransformshift{\pgfpoint{0 bp } { 0 bp }  }  \pgftransformrotate{0 }  \pgftransformscale{2 }  }}}
+\pgfdeclarehorizontalshading{_ghvrk7yoz}{150bp}{rgb(0bp)=(1,1,1);
+rgb(37.5bp)=(1,1,1);
+rgb(49.75bp)=(1,1,1);
+rgb(50bp)=(0.77,0.95,1);
+rgb(62.48511723109654bp)=(0.77,0.95,1);
+rgb(100bp)=(0.77,0.95,1)}
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1, font =\sffamily]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Rounded Rect [id:dp5295555913074174] 
+\path  [shading=_ghvrk7yoz,_0i3s7pmbc] (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for fading 
+ \draw   (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for border 
+
+%Rounded Rect [id:dp8525636205326067] 
+\draw  [fill={rgb, 255:red, 93; green, 216; blue, 255 }  ,fill opacity=1 ] (280,50.67) .. controls (280,44.78) and (284.78,40) .. (290.67,40) -- (309.33,40) .. controls (315.22,40) and (320,44.78) .. (320,50.67) -- (320,249.33) .. controls (320,255.22) and (315.22,260) .. (309.33,260) -- (290.67,260) .. controls (284.78,260) and (280,255.22) .. (280,249.33) -- cycle ;
+%Straight Lines [id:da9249822923109696] 
+\draw    (300,60) -- (242,60) ;
+\draw [shift={(240,60)}, rotate = 360] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da8820440473887884] 
+\draw    (240,240) -- (298,240) ;
+\draw [shift={(300,240)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da20558832649423409] 
+\draw    (204,80) -- (204,214) ;
+\draw [shift={(204,216)}, rotate = 270] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (178,52) node [anchor=north west][inner sep=0.75pt]   [align=left] {Sensori};
+% Text Node
+\draw (174,232) node [anchor=north west][inner sep=0.75pt]   [align=left] {Attuatori};
+% Text Node
+\draw (307,119) node [anchor=north west][inner sep=0.75pt]  [rotate=-90] [align=left] {Ambiente};
+% Text Node
+\draw (52,49) node [anchor=north west][inner sep=0.75pt]   [align=left] {Agente};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (168,89) -- (243,89) -- (243,109) -- (168,109) -- cycle  ;
+\draw (171,93) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Stato attuale};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (166,170) -- (245,170) -- (245,190) -- (166,190) -- cycle  ;
+\draw (169,174) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Azione scelta};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (54,178) .. controls (54,173.03) and (58.03,169) .. (63,169) -- (127,169) .. controls (131.97,169) and (136,173.03) .. (136,178) -- (136,180) .. controls (136,184.97) and (131.97,189) .. (127,189) -- (63,189) .. controls (58.03,189) and (54,184.97) .. (54,180) -- cycle  ;
+\draw (57,173) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Regole if-then};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (161,130) -- (252,130) -- (252,150) -- (161,150) -- cycle  ;
+\draw (164,134) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Stati precedenti};
+% Connection
+\draw    (136,179.37) -- (164,179.62) ;
+\draw [shift={(166,179.64)}, rotate = 180.52] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+\end{tikzpicture}
+\end{center}
+
+	\item \textbf{Basati su modelli:} anziché basarsi soltanto sugli input correnti dei sensori, questi modelli mantengono una rappresentazione interna dell'ambiente esterno, che aggiornano sulla base degli input dei sensori, e che usano per fare decisioni migliori:
+
+\begin{center}
+% Gradient Info
+  
+\tikzset {_che5olbga/.code = {\pgfsetadditionalshadetransform{ \pgftransformshift{\pgfpoint{0 bp } { 0 bp }  }  \pgftransformrotate{0 }  \pgftransformscale{2 }  }}}
+\pgfdeclarehorizontalshading{_zoafhx2a8}{150bp}{rgb(0bp)=(1,1,1);
+rgb(37.5bp)=(1,1,1);
+rgb(49.75bp)=(1,1,1);
+rgb(50bp)=(0.77,0.95,1);
+rgb(62.48511723109654bp)=(0.77,0.95,1);
+rgb(100bp)=(0.77,0.95,1)}
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1, font =\sffamily]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Rounded Rect [id:dp5295555913074174] 
+\path  [shading=_zoafhx2a8,_che5olbga] (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for fading 
+ \draw   (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for border 
+
+%Rounded Rect [id:dp8525636205326067] 
+\draw  [fill={rgb, 255:red, 93; green, 216; blue, 255 }  ,fill opacity=1 ] (280,50.67) .. controls (280,44.78) and (284.78,40) .. (290.67,40) -- (309.33,40) .. controls (315.22,40) and (320,44.78) .. (320,50.67) -- (320,249.33) .. controls (320,255.22) and (315.22,260) .. (309.33,260) -- (290.67,260) .. controls (284.78,260) and (280,255.22) .. (280,249.33) -- cycle ;
+%Straight Lines [id:da9249822923109696] 
+\draw    (300,60) -- (242,60) ;
+\draw [shift={(240,60)}, rotate = 360] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da8820440473887884] 
+\draw    (240,240) -- (298,240) ;
+\draw [shift={(300,240)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da20558832649423409] 
+\draw    (204,80) -- (204,214) ;
+\draw [shift={(204,216)}, rotate = 270] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (178,52) node [anchor=north west][inner sep=0.75pt]   [align=left] {Sensori};
+% Text Node
+\draw (174,232) node [anchor=north west][inner sep=0.75pt]   [align=left] {Attuatori};
+% Text Node
+\draw (307,119) node [anchor=north west][inner sep=0.75pt]  [rotate=-90] [align=left] {Ambiente};
+% Text Node
+\draw (52,49) node [anchor=north west][inner sep=0.75pt]   [align=left] {Agente};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (168,89) -- (243,89) -- (243,109) -- (168,109) -- cycle  ;
+\draw (171,93) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Stato attuale};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (166,170) -- (245,170) -- (245,190) -- (166,190) -- cycle  ;
+\draw (169,174) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Azione scelta};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (55,98) .. controls (55,93.03) and (59.03,89) .. (64,89) -- (122,89) .. controls (126.97,89) and (131,93.03) .. (131,98) -- (131,100) .. controls (131,104.97) and (126.97,109) .. (122,109) -- (64,109) .. controls (59.03,109) and (55,104.97) .. (55,100) -- cycle  ;
+\draw (58,93) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Stato interno};
+% Connection
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (102.45,87.62) .. controls (134.3,65.56) and (166.15,66.02) .. (198,89) ;
+\draw [shift={(100.5,89)}, rotate = 324.19] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+% Connection
+\draw    (131,104) -- (166,104) ;
+\draw [shift={(168,104)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+\end{tikzpicture}
+\end{center}
+
+		Si dividono in: 
+		\begin{itemize}
+	\item \textbf{Basati su obiettivi:} dispongono di obiettivi che riflettono i loro "desideri". Per fare ciò, dispongono di informazioni riguardo a quello che le loro azioni fanno all'ambiente esterno, testano queste azioni sul loro modello interno dell'ambiente, e scelgono l'azione che li porta più vicino all'obiettivo (ad esempio, un'automobile a guida autonoma, che decide dove svoltare, quando frenare, ecc... con l'obiettivo di portare l'utente a destinazione).
+
+\begin{center}
+% Gradient Info
+  
+\tikzset {_5pxvjimuz/.code = {\pgfsetadditionalshadetransform{ \pgftransformshift{\pgfpoint{0 bp } { 0 bp }  }  \pgftransformrotate{0 }  \pgftransformscale{2 }  }}}
+\pgfdeclarehorizontalshading{_13qtzqvja}{150bp}{rgb(0bp)=(1,1,1);
+rgb(37.5bp)=(1,1,1);
+rgb(49.75bp)=(1,1,1);
+rgb(50bp)=(0.77,0.95,1);
+rgb(62.48511723109654bp)=(0.77,0.95,1);
+rgb(100bp)=(0.77,0.95,1)}
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1, font =\sffamily]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Rounded Rect [id:dp5295555913074174] 
+\path  [shading=_13qtzqvja,_5pxvjimuz] (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for fading 
+ \draw   (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for border 
+
+%Rounded Rect [id:dp8525636205326067] 
+\draw  [fill={rgb, 255:red, 93; green, 216; blue, 255 }  ,fill opacity=1 ] (280,50.67) .. controls (280,44.78) and (284.78,40) .. (290.67,40) -- (309.33,40) .. controls (315.22,40) and (320,44.78) .. (320,50.67) -- (320,249.33) .. controls (320,255.22) and (315.22,260) .. (309.33,260) -- (290.67,260) .. controls (284.78,260) and (280,255.22) .. (280,249.33) -- cycle ;
+%Straight Lines [id:da9249822923109696] 
+\draw    (300,60) -- (242,60) ;
+\draw [shift={(240,60)}, rotate = 360] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da8820440473887884] 
+\draw    (240,240) -- (298,240) ;
+\draw [shift={(300,240)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da20558832649423409] 
+\draw    (204,80) -- (204,214) ;
+\draw [shift={(204,216)}, rotate = 270] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (178,52) node [anchor=north west][inner sep=0.75pt]   [align=left] {Sensori};
+% Text Node
+\draw (174,232) node [anchor=north west][inner sep=0.75pt]   [align=left] {Attuatori};
+% Text Node
+\draw (307,119) node [anchor=north west][inner sep=0.75pt]  [rotate=-90] [align=left] {Ambiente};
+% Text Node
+\draw (52,49) node [anchor=north west][inner sep=0.75pt]   [align=left] {Agente};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (168,89) -- (243,89) -- (243,109) -- (168,109) -- cycle  ;
+\draw (171,93) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Stato attuale};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (166,170) -- (245,170) -- (245,190) -- (166,190) -- cycle  ;
+\draw (169,174) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Azione scelta};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (55,98) .. controls (55,93.03) and (59.03,89) .. (64,89) -- (122,89) .. controls (126.97,89) and (131,93.03) .. (131,98) -- (131,101) .. controls (131,105.97) and (126.97,110) .. (122,110) -- (64,110) .. controls (59.03,110) and (55,105.97) .. (55,101) -- cycle  ;
+\draw (58,93) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Stato interno};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (65,179) .. controls (65,174.03) and (69.03,170) .. (74,170) -- (111,170) .. controls (115.97,170) and (120,174.03) .. (120,179) -- (120,182) .. controls (120,186.97) and (115.97,191) .. (111,191) -- (74,191) .. controls (69.03,191) and (65,186.97) .. (65,182) -- cycle  ;
+\draw (68,174) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Obiettivo};
+% Connection
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (103.23,87.64) .. controls (134.55,65.89) and (165.87,66.34) .. (197.19,89) ;
+\draw [shift={(101.31,89)}, rotate = 324.12] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+% Connection
+\draw    (131,104.5) -- (166,104.5) ;
+\draw [shift={(168,104.5)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+% Connection
+\draw    (120,180.5) -- (164,180.5) ;
+\draw [shift={(166,180.5)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+\end{tikzpicture}
+\end{center}
+
+	\item \textbf{Basati sull'utilità:} dispongono di una funzione che valuta l'utilità, cioè il livello di \textit{felicità} percepita, $f(\text{stato}) \rightarrow \text{valore}$ che cercano di massimizzare, confrontandosi con la loro rappresentazione interna in modo simile ai modelli basati su obiettivi (ad esempio, un modello decisionale che gioca in borsa: la funzione utilità rappresenterà il profitto, che verrà massimizzata tenendo conto di rischi e guadagni). Visto che non valutano soltanto se un azione li porterà o meno all'obiettivo sperato, ma fanno diverse considerazioni sul vantaggio relativo dato da più opzioni, sono solitamente migliori dei modelli basati su obiettivi. 
+
+\begin{center}
+% Gradient Info
+  
+\tikzset {_y5vm8oygg/.code = {\pgfsetadditionalshadetransform{ \pgftransformshift{\pgfpoint{0 bp } { 0 bp }  }  \pgftransformrotate{0 }  \pgftransformscale{2 }  }}}
+\pgfdeclarehorizontalshading{_yeej6span}{150bp}{rgb(0bp)=(1,1,1);
+rgb(37.5bp)=(1,1,1);
+rgb(49.75bp)=(1,1,1);
+rgb(50bp)=(0.77,0.95,1);
+rgb(62.48511723109654bp)=(0.77,0.95,1);
+rgb(100bp)=(0.77,0.95,1)}
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1, font =\sffamily]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Rounded Rect [id:dp5295555913074174] 
+\path  [shading=_yeej6span,_y5vm8oygg] (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for fading 
+ \draw   (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for border 
+
+%Rounded Rect [id:dp8525636205326067] 
+\draw  [fill={rgb, 255:red, 93; green, 216; blue, 255 }  ,fill opacity=1 ] (280,50.67) .. controls (280,44.78) and (284.78,40) .. (290.67,40) -- (309.33,40) .. controls (315.22,40) and (320,44.78) .. (320,50.67) -- (320,249.33) .. controls (320,255.22) and (315.22,260) .. (309.33,260) -- (290.67,260) .. controls (284.78,260) and (280,255.22) .. (280,249.33) -- cycle ;
+%Straight Lines [id:da9249822923109696] 
+\draw    (300,60) -- (242,60) ;
+\draw [shift={(240,60)}, rotate = 360] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da8820440473887884] 
+\draw    (240,240) -- (298,240) ;
+\draw [shift={(300,240)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da20558832649423409] 
+\draw    (204,80) -- (204,214) ;
+\draw [shift={(204,216)}, rotate = 270] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (178,52) node [anchor=north west][inner sep=0.75pt]   [align=left] {Sensori};
+% Text Node
+\draw (174,232) node [anchor=north west][inner sep=0.75pt]   [align=left] {Attuatori};
+% Text Node
+\draw (307,119) node [anchor=north west][inner sep=0.75pt]  [rotate=-90] [align=left] {Ambiente};
+% Text Node
+\draw (52,49) node [anchor=north west][inner sep=0.75pt]   [align=left] {Agente};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (168,89) -- (243,89) -- (243,109) -- (168,109) -- cycle  ;
+\draw (171,93) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Stato attuale};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (166,170) -- (245,170) -- (245,190) -- (166,190) -- cycle  ;
+\draw (169,174) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Azione scelta};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (55,98) .. controls (55,93.03) and (59.03,89) .. (64,89) -- (122,89) .. controls (126.97,89) and (131,93.03) .. (131,98) -- (131,101) .. controls (131,105.97) and (126.97,110) .. (122,110) -- (64,110) .. controls (59.03,110) and (55,105.97) .. (55,101) -- cycle  ;
+\draw (58,93) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Stato interno};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (73,179) .. controls (73,174.03) and (77.03,170) .. (82,170) -- (102,170) .. controls (106.97,170) and (111,174.03) .. (111,179) -- (111,182) .. controls (111,186.97) and (106.97,191) .. (102,191) -- (82,191) .. controls (77.03,191) and (73,186.97) .. (73,182) -- cycle  ;
+\draw (76,174) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {Utilità};
+% Connection
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (103.23,87.64) .. controls (134.55,65.89) and (165.87,66.34) .. (197.19,89) ;
+\draw [shift={(101.31,89)}, rotate = 324.12] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+% Connection
+\draw    (131,104.5) -- (166,104.5) ;
+\draw [shift={(168,104.5)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+% Connection
+\draw    (111,180.5) -- (164,180.5) ;
+\draw [shift={(166,180.5)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+\end{tikzpicture}
+\end{center}
+
+		\end{itemize}
+	\item \textbf{Capaci di apprendere:} implementano cicli di feedback interni che li spingono a rispondere in modo dinamico alle variazioni dell'ambiente e dell'utilità percepita: possono quindi adattare il loro comportamento a situazioni impreviste o in continua evoluzione (ad esempio, un assistente vocale che impara il modo di parlare, o le preferenze, ecc... del suo utente).
+
+	Nel dettaglio, questi modelli sono formati da:
+	\begin{itemize}
+		\item \textbf{Elemento di prestazione:} il componente che effettua le decisioni vere e proprie dell'agente, cioè il modello che vogliamo andare a migliorare;
+		\item \textbf{Critico:} un componente che si basa sui sensori e sulla metrica di performance usata per valutare il comportamento del modello;
+		\item \textbf{Elemento di apprendimento:} un modello che si esamina il \textbf{feedback} del critico, e usa i risultati trovati per migliorare l'elemento di prestazione.
+		\item \textbf{Generatore di problemi:} un componente che si occupa di suggerire azioni che potrebbero aumentare la gamma di informazioni disponibile al modello.
+	\end{itemize}
+
+\begin{center}
+% Gradient Info
+  
+\tikzset {_snscj5g2s/.code = {\pgfsetadditionalshadetransform{ \pgftransformshift{\pgfpoint{0 bp } { 0 bp }  }  \pgftransformrotate{0 }  \pgftransformscale{2 }  }}}
+\pgfdeclarehorizontalshading{_gljisde1v}{150bp}{rgb(0bp)=(1,1,1);
+rgb(37.5bp)=(1,1,1);
+rgb(49.75bp)=(1,1,1);
+rgb(50bp)=(0.77,0.95,1);
+rgb(62.48511723109654bp)=(0.77,0.95,1);
+rgb(100bp)=(0.77,0.95,1)}
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1, font =\sffamily]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Rounded Rect [id:dp5295555913074174] 
+\path  [shading=_gljisde1v,_snscj5g2s] (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for fading 
+ \draw   (40,56.67) .. controls (40,47.46) and (47.46,40) .. (56.67,40) -- (243.33,40) .. controls (252.54,40) and (260,47.46) .. (260,56.67) -- (260,243.33) .. controls (260,252.54) and (252.54,260) .. (243.33,260) -- (56.67,260) .. controls (47.46,260) and (40,252.54) .. (40,243.33) -- cycle ; % for border 
+
+%Rounded Rect [id:dp8525636205326067] 
+\draw  [fill={rgb, 255:red, 93; green, 216; blue, 255 }  ,fill opacity=1 ] (280,50.67) .. controls (280,44.78) and (284.78,40) .. (290.67,40) -- (309.33,40) .. controls (315.22,40) and (320,44.78) .. (320,50.67) -- (320,249.33) .. controls (320,255.22) and (315.22,260) .. (309.33,260) -- (290.67,260) .. controls (284.78,260) and (280,255.22) .. (280,249.33) -- cycle ;
+%Straight Lines [id:da9249822923109696] 
+\draw    (300,60) -- (242,60) ;
+\draw [shift={(240,60)}, rotate = 360] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da8820440473887884] 
+\draw    (240,240) -- (298,240) ;
+\draw [shift={(300,240)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da20558832649423409] 
+\draw    (204,80) -- (204,214) ;
+\draw [shift={(204,216)}, rotate = 270] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (178,52) node [anchor=north west][inner sep=0.75pt]   [align=left] {Sensori};
+% Text Node
+\draw (174,232) node [anchor=north west][inner sep=0.75pt]   [align=left] {Attuatori};
+% Text Node
+\draw (307,119) node [anchor=north west][inner sep=0.75pt]  [rotate=-90] [align=left] {Ambiente};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (184.5,130.5) -- (255.5,130.5) -- (255.5,168.5) -- (184.5,168.5) -- cycle  ;
+\draw (187.5,134.5) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {\begin{minipage}[lt]{45.79pt}\setlength\topsep{0pt}
+\begin{center}
+Elemento di\\prestazione
+\end{center}
+
+\end{minipage}};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (50.5,130.5) -- (138.5,130.5) -- (138.5,168.5) -- (50.5,168.5) -- cycle  ;
+\draw (53.5,134.5) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {\begin{minipage}[lt]{57.12pt}\setlength\topsep{0pt}
+\begin{center}
+Elemento di \\apprendimento
+\end{center}
+
+\end{minipage}};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (74.5,50.5) -- (116.5,50.5) -- (116.5,71.5) -- (74.5,71.5) -- cycle  ;
+\draw (77.5,54.5) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {\begin{minipage}[lt]{25.84pt}\setlength\topsep{0pt}
+\begin{center}
+Critico
+\end{center}
+
+\end{minipage}};
+% Text Node
+\draw  [fill={rgb, 255:red, 255; green, 255; blue, 255 }  ,fill opacity=1 ]  (60,195.5) -- (129,195.5) -- (129,233.5) -- (60,233.5) -- cycle  ;
+\draw (63,199.5) node [anchor=north west][inner sep=0.75pt]  [font=\sffamily\footnotesize] [align=left] {\begin{minipage}[lt]{43.97pt}\setlength\topsep{0pt}
+\begin{center}
+Generatore\\di problemi
+\end{center}
+
+\end{minipage}};
+% Text Node
+\draw (56.5,87) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\sffamily\tiny feedback}};
+% Text Node
+\draw (59,175.5) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {{\sffamily\tiny obiettivi}};
+% Text Node
+\draw (140.5,160) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\sffamily\tiny conoscenza}};
+% Text Node
+\draw (139,130) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\sffamily\tiny cambiamenti}};
+% Connection
+\draw    (138.5,144.5) -- (182.5,144.5) ;
+\draw [shift={(184.5,144.5)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+% Connection
+\draw    (184.5,154.5) -- (140.5,154.5) ;
+\draw [shift={(138.5,154.5)}, rotate = 360] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+% Connection
+\draw    (95.38,71.5) -- (94.74,128.5) ;
+\draw [shift={(94.71,130.5)}, rotate = 270.65] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+% Connection
+\draw    (94.5,168.5) -- (94.5,193.5) ;
+\draw [shift={(94.5,195.5)}, rotate = 270] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+% Connection
+\draw    (129,196.63) -- (182.72,168.81) ;
+\draw [shift={(184.5,167.89)}, rotate = 152.62] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+% Connection
+\draw    (175,60.64) -- (118.5,60.89) ;
+\draw [shift={(116.5,60.9)}, rotate = 359.74] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+\end{tikzpicture}
+\end{center}
+
+Oggi, la maggior parte dei modelli sul mercato è data da modelli basati su modelli e capaci di apprendere: la maggior parte della funzionalità del modello viene a svilupparsi proprio nella fase di apprendimento.
+
+\end{itemize}
+
+%
+%\subsection{Problem solving per ricerca}
+%# magari prima o poi finisci
+%\TODO
 
 \end{document}
