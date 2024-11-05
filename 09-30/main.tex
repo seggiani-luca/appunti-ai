@@ -271,6 +271,152 @@ Una KB potrebbe sembrare simile ad un comune database: la differenza è che il d
 La KB è invece progettata per mantenere una rappresentazione strutturata dei fatti, specifici o generali, come riferiti a oggetti reali, e permettere quindi inferenze su quei fatti. 
 
 \subsection{Logica proposizionale}
+Un tipo di logica piuttosto limitato ma comunque utile è la \textbf{logica proposizionale} (detta anche \textit{logica di ordine zero}).
 
+\begin{itemize}
+	\item \textbf{Sintassi:}
+		la logica proposizionale comprende di \textbf{proposizioni}, cioè simboli (vengono infatti detti anche \textbf{simboli di proposizione}) che possono assumere un valore vero o falso, e di \textbf{formule} o \textit{espressioni}, formate dall'applicazione di operatori a altre formule, a proposizioni o a valori assoluti vero o falso, e cosi via ricorsivamente.
+		Gli operatori previsti sono quelli classici, in ordine di precedenza da massima a minima:
+		\begin{itemize}
+			\item \textbf{Negazione logica:} indicata con $\neg$, ad arietà unaria;
+			\item \textbf{Congiunzione logica:} indicata con $\wedge$, ad arietà binaria;
+			\item \textbf{Disgiunzione logica:} indicata con $\vee$, ad arietà binaria;
+			\item \textbf{Implicazione logica:} indicata con $\Rightarrow$, ad arietà binaria. Il membro sinistro si dice \textbf{antecedente}, e il membro destro \textbf{conseguente};
+			\item \textbf{Coimplicazione logica:} indicata con $\Leftrightarrow$, ad arietà binaria. 
+		\end{itemize}
+		In particolare, chiamiamo \textbf{letterale} un simbolo di proposizione o la sua negazione.
+	\item \textbf{Semantica:}
+		una volta stabilita una sintassi, è necessario assegnare un significato \textbf{semantico} ai simboli che essa comprende: abbiamo detto che una proposizione rappresenta un dato sull'aspetto reale attraverso la sua semantica.
+		In particolare, introduciamo il concetto di \textbf{modello} come possibile sostituzione di valori vero o falso a ogni simbolo di proposizione.
+		Si ha quindi che ogni simbolo rappresenta semanticamente il valore di verità che assume in un dato modello $m$.
+		Si possono quindi definire i significati semantici degli operatori:
+		\begin{itemize}
+			\item \textbf{Negazione logica:} $\neg P$ è vera se $P$ è falsa in $m$;
+			\item \textbf{Congiunzione logica:} $P \wedge Q$ è vera se $P$ e $Q$ sono entrambe vere in $m$, falsa altrimenti;
+			\item \textbf{Disgiunzione logica:} $P \vee Q$ è falsa se $P$ e $Q$ sono entrambe false in $m$, vera altrimenti;
+			\item \textbf{Implicazione logica:} $P \Rightarrow Q$ è falsa se $P$ è vera e $Q$ falsa in $m$, vera altrimenti;
+			\item \textbf{Coimplicazione logica:} $P \Leftrightarrow Q$ è vera se $P$ e $Q$ sono entrambe vere o entrambe false in $m$, falsa altrimenti.
+		\end{itemize}
+		Notiamo che implicazione logica e coimplicazione logica non hanno molto significato a livello di singoli modelli, ma sono più utili a livello di \textbf{validità} (verità su tutti i modelli).
+
+		Si nota inoltre l'esistenza dell'operatore di \textbf{disgiunzione esclusiva} indicato con $\oplus$ o \textit{xor}. Non useremo esplicitamente questo operatore, e se lo faremo basterà la definizione come $P \oplus Q \equiv \neg(P \Leftrightarrow Q)$.
+\end{itemize}
+
+Quello che vogliamo fare una volta stabilita una logica formale è trovare i modi in cui si può estrarre \textbf{implicazione} a partire da formule logiche.
+Inoltre, vogliamo determinare se gli algoritmi che usiamo per svolgere questa operazione sono \textbf{validi}, cioè rispettano le regole della logica e ricavano implicazioni \textbf{vere} (tutti gli approcci che consideremo sono validi), e \textbf{completi}, cioè capaci di derivare \textit{tutte} le possibili implicazioni logiche di un insieme di formule (effettivamente una knowledge base), e quindi capaci di dimostrare, se implicabile, l'implicabilità di qualsiasi forma logica.
+Per quanto riguarda la logica proposizionale, abbiamo tre approcci principali a disposizione:
+\begin{itemize}
+	\item \textbf{Verifica dei modelli}, in inglese \textit{model checking}: si verifica il valore di verità di una formula su tutti modelli possibili (o, più intelligentemente, su un sottoinsieme di essi), in modo da arrivare ad una verifica per "forza bruta" della formula.
+		Questi metodi si distinguono nello specifico in:
+		\begin{itemize}
+			\item \textbf{Enumerazione totale:} si verifica la totalità dei modelli (è quindi un approccio \textbf{completi}), eventualmente impiegando algoritmi ricorsivi dotati di \textit{backtracking}, cioè la capacità di tornare ad una soluzione precedente nel caso la regione esplorata finora si dimostri vuota di soluzioni valide.
+				Un algoritmo di questo tipo e l'algoritmo di \textbf{Davis-Putnam}.
+			\item \textbf{Ricerca locale:} si verifica un sottoinsieme dei modelli, attraverso una qualche euristica, cercando di trovare modelli che soddisfano la formula data. Questi sistemi non saranno mai, ovviamente, completi (si può essere \textit{quasi} sicuri che una formula sia vera o falsa, ma mai \textit{completamente}), ma sono comunque utili nel campo dei modelli logici dove verificare con completezza ogni formula risulterebbe troppo dispendioso in risorse.
+				L'euristica, in questo caso, viene data da una certa \textbf{funzione obiettivo} da massimizzare, che può essere ad esempio il numero di clausole rimaste insoddisfatte nella formula.
+				Esempi di algoritmi di questo tipo sono quindi:
+				\begin{itemize}
+					\item \textbf{Annealing simulato:} ispirandosi al comportamento di un metallo che viene portato a temperature elevate per portare la sua configurazione molecolare ad un punto di equilibrio stabile più basso, si modificano casualmente i valori di verità delle proposizioni nel modello, accettando le soluzioni che aumentano la funzione obiettivo e, entro un certo margine, che la diminuiscono (nella speranza che compromessi sul corto termine possano portare a guadagni sul lungo termine).
+					\item \textbf{WalkSAT:} è un algoritmo che alterna fra un comportamento casuale (modificare una variabile nel modello ad arbitrio) e probabilistico (modificare una variabile che, statisticamente, può migliorare la funzione obiettivo). Algoritmi di questo tipo si rivelano, nelle loro limitazioni, molto efficienti per la valutazione di formule logiche.
+				\end{itemize}
+		\end{itemize}
+	\item \textbf{Deduzione automatica}, in inglese \textit{theorem proving}: si applicano \textbf{regole di inferenza} alle formule, in modo di dimostrarne la \textbf{validità}. In particolare, questo torna utile in quanto l'implicazione può tradursi come:
+$$
+a \models b \Leftrightarrow a \Rightarrow b \text{ è valida}
+$$
+cioè, dimostrando che l'implicazione $a \rightarrow b$ è validà, cioè vera in tutti i modelli, allora effettivamente $a$ implica $b$ ($a \models b$) nell'ambiente esterno che volevamo modelizzare.
+Esistono diverse regole di inferenza usate nella dimostrazione dei teoremi, cioè \textbf{modus ponens}, \textbf{unificazione}, \textbf{instanziazione universale}, \textbf{reductio ad aburdum} ecc... 
+
+\begin{itemize}
+	\item \textbf{Risoluzione:} 
+una regola di inferenza che risulta utile nei sistemi di deduzione automatica è la \textbf{risoluzione}.
+Diciamo che due letterali sono \textbf{complementari} se sono uno la negazione e uno l'affermazione così com'è di uno stesso simbolo di proposizione, cioè $P$ è complementare a $\neg P$.
+Allora, si può dimostrare che:
+$$
+\frac{l_1 \vee ... \vee l_k, \quad m_1 \vee ... \vee m_k}{l_1 \vee ... \vee l_{i-1} \vee l_{i+1} \vee ... \vee l_k \vee m_1 \vee ... \vee m_{i-1} \vee m_{j+1} \vee ... \vee m_k}
+$$
+Se esistono due letterali $l_i$ e $m_j$ fra di loro complementari.
+Chiaramente, questa regola si applica solo a disgiunzioni di letterali.
+Si introduce quindi il concetto di \textbf{CNF} (\textit{conjunctive normal form}), ergo una congiunzione di disginuzioni di letterali:
+$$
+d_1 \wedge ... \wedge d_k, \quad a_i = (l_1 \vee ... \vee l_n)
+$$
+Esiste anche l'equivalente in disgiunzioni, la \textbf{DNF} (\textit{disjunctive normal form}), che però non vediamo.
+In ogni caso, la conversione di una formula nell'equivalente CNF o DNF si fa attraverso un'algoritmo ricorsivo, applicando la proprietà distributiva alle disgiunzioni nel caso della CNF (congiunzioni ne caso della DNF), e applicando le leggi di De Morgan per portare le negazioni "in dentro" fino ai letterali.
+Una volta portata una formula in CNF, si può quindi applicare ricorsivamente la risoluzione alle clausole della CNF, che saranno, come volevamo, disgiunzioni di letterali.
+
+\item \textbf{Clausole di Horn:}
+approcci più efficienti, ma meno completi, sono dati dall'uso di clausole ristrette, fra cui ad esempio le \textbf{clausole di Horn}:
+\begin{definition}{Clausola di Horn}
+	Si definisce clausola di Horn una disgiunzione di letterali di cui \textit{al massimo uno} è positivo (non negato).
+\end{definition}
+Le clausole di Horn sono un sovrainsieme delle cosiddette \textbf{clausole definite}, cioè disgiunzioni di letterali di cui \textit{esattamente uno} è positivo.
+Le clausole di Horn permettono, a costo di minore espressività, di fare deduzioni in tempo lineare, attraverso due tipi di algoritmi:
+\begin{itemize}
+	\item \textbf{Forward chaining:} si parte dai fatti che abbiamo a disposizione (le formule atomiche nella knowledge base) e si applicano le regole di inferenza (effettivamente il \textit{modus ponens} sulle clausole di Horn) in modo da ricavare le possibili formule implicate dalla KB, fino a raggiungere la formula bersaglio, la cui validità vogliamo dimostrare.
+		Per ottimizzare algoritmi di questo tipo si usano gli approcci di ricerca su alberi, in quanto quello che andiamo a costruire è un \textbf{albero and-or}. 
+	\item \textbf{Backward chaining:} si parte dalla formula bersaglio, e si lavora al contrario, cercando di soddisfarla trovando nella KB premesse valide.
+		Un approccio di questo tipo, con backtracking nel caso di alberi non soddisfacenti, è quello usato dal linguaggio Prolog.
+\end{itemize}
+\end{itemize}
+\end{itemize}
+
+\subsection{Logica del primo ordine}
+Una logica più potente ma più complessa della logica proposizionale è la \textbf{logica del primo ordine}.
+Nella logica del primo ordine prendiamo un \textit{impegno ontologico} ed \textit{epistemologico} più grande di quello che avevamo preso nella logica proposizionale: invece di \textbf{fatti} che possono essere veri o falsi, consideriamo \textbf{oggetti} in relazione fra di loro.
+\begin{itemize}
+	\item \textbf{Sintassi:}
+		la logica del primo ordine estende la logica proposizionale, introducendo i simboli di:
+		\begin{itemize}
+			\item \textbf{Quantificatore universale:} si indica con $\forall x$, seguita dalle proprietà valide per $x$;
+			\item \textbf{Quantificatore esistenziale:} si indica con $\exists x$, seguita dalle proprietà valide per $x$.
+		\end{itemize}
+	\item \textbf{Semantica:}
+		Nella logica del primo ordine non parliamo di fatti, ma introduciamo le seguenti entità:
+		\begin{itemize}
+			\item \textbf{Oggetti:} rappresentano le entità di cui parliamo nel nostro sistema formale;
+			\item \textbf{Relazioni:} predicati booleani su qualità unarie di un oggetto (è rosso, è grande, ecc...) o su relazioni $n$-arie fra oggetti (è fratello di, è supervisore di, ecc...);
+			\item \textbf{Funzioni:} relazioni che associano ad ogni elemento del dominio uno solo del codominio (la madre di, il migliore amico di, ecc...). 
+		\end{itemize}
+		Chiamiamo \textbf{predicati} le funzioni booleane, cioè le funzioni che verificano se una proprietà di uno o più oggetti è vera. I predicati saranno l'equivalente delle proposizioni che avevamo visto nella logica proposizionale.
+		
+		Una volta introdotta la nozione di \textit{oggetti}, si ha che questi esistono all'interno di un \textbf{dominio}, e si possono quindi usare i cosiddetti \textbf{quantificatori}:
+		\begin{itemize}
+			\item \textbf{Quantificatore universale:} significa che per ogni oggetto del dominio un dato predicato è vero;
+			\item \textbf{Quantificatore esistenziale:} significa che esiste almeno un oggetto del dominio per cui un dato predicato è vero. Quantificatori esistenziali più complicati come \textit{esiste ed è unico} ($\exists!$), ecc... possono esprimersi comunque attraverso la logica del primo ordine (ad esempio $\exists x ( P(x) \wedge \forall y (P(y) \Rightarrow y = x) )$).
+		\end{itemize}
+\end{itemize}
+
+Come prima, siamo interessati a trovare modi per dimostrare l'implicazione logica di formule in logica del primo ordine a partire da una knowledge base di altre formule.
+Notiamo che in generale questo è più difficile di quanto lo era stato nella logica proposizionale, in quanto questa è solo \textbf{semidecidibile}: la possibilità di creare regole ricorsive rende l'implicazione decidibile, ma la non implicazione non sempre decidibile.
+
+Si hanno quindi gli approcci:
+\begin{itemize}
+	\item \textbf{Proposizionalizzazione:}
+		l'approccio più immediato per la dimostrazione dell'implicazione nella logica del primo ordine è quello della conversione della formula in logica proposizionale. Questo è sempre possibile, instanziando le variabili nei quantificatori secondo le regole:
+		\begin{itemize}
+			\item \textbf{Instanziazione universale:} si istanziano le variabili universalmente quantificati con \textbf{termini ground}, cioè che non contengono variabili (effettivamente riducendo la formula a una serie di termini che rappresentano fatti reali nella KB).
+			\item \textbf{Instanziazione esistenziale:} si istanziano le variabili esistenzialmente quantificate con un nuovo simbolo costante, detto \textbf{costante di Skolem} (motivo per cui il processo prende il nome di \textbf{skolemizzazione}).
+		\end{itemize}
+		Le instanziazioni sopra definite equivalgono effettivamente a \textbf{sostituzioni}, notate con la sintassi $\theta = \{ x_1 / k_1, ..., x_n / k_n \}$, di termini di ground o costanti di Skolem $k_i$ alle variabili $x_i$ di formule in logica del primo ordine.
+	\item \textbf{Unificazione:}
+		si può introdurre il \textit{modus ponens generalizzato}: presa una formula logica data dall'implicazione attraverso $n$ premesse (formule atomiche) di una conclusione $q$, cioè $p_1 \wedge ... \wedge p_n \Rightarrow q$, e una serie di altre formule atomiche $p'_1, ..., p'_n$, se si ha che se una sostituzione $\theta$ rende le $p_i$ uguali alle $p'_i$, allora è implicata la sostituzione via $\theta$ di $q$:
+$$
+\frac{p'_1, ..., p'_n, \quad (p_1 \wedge ... \wedge p_2)}{\mathrm{subst}(\theta, q)}
+$$
+In altre parole, se sostituendo via $\theta$ una serie di proposizioni (quelle che avremo nella KB) si rendono uguali a quelle di ad un implicazione vera $p_1 \wedge ... \wedge p_n = q$, allora ciò che si ottiene dalla sostituzione $\theta$ in $q$ è vero.
+Quest'operazione non è altro che il \textbf{lifting} del modus ponens alla logica del primo ordine: sostituendo termini di ground ad un implicazione di primo ordine si ottiene una forma del modus ponens che ci permette di mantenere la formula del primo ordine stesso (senza dover ricorrere alla proposizionalizzazione).
+Algoritmi di \textbf{unificazione} sfruttano questo principio per trovare il cosiddetto \textbf{MGU}, in inglese \textit{Most General Unifier}, cioè la sostituzione $\theta$ più generale che rende $p_i = p'_i$. 
+	\item \textbf{Clausole definite:}
+		possiamo sfruttare le clausole definite anche nella logica del primo ordine, e usare quindi algoritmi di \textbf{forward chaining} e \textbf{backward chaining}.
+		Il processo è analogo a quanto avevamo fatto nella logica proposizionale:
+		\begin{itemize}
+			\item \textbf{Forward chaining:} si trovano tutte le formule implicate attraverso sostituzioni $\theta$, ergo tutte le formule implicate dagli antecedenti presi in considerazione. Come prima, questo significa muoversi potenzialmente verso direzioni non ottimali per la verifica di una formula particolare;
+			\item \textbf{Backward chaining:} si cercano di dimostrare le premesse della formula trovando sostituzioni $\theta$ efficaci nella KB.
+		\end{itemize}
+	\item \textbf{Risoluzione:} si può estendere la risoluzione alla logica del primo ordine: attraverso la conversione in CNF che avevamo visto nella logica proposizionale, la skolemizzazione (o introduzione di \textit{funzioni di skolem}), la rimozione dei quantificatori universali (le variabili universalmente quantificate saranno quelle che andremo a rimuovere per risoluzione), e un nuovo passo detto \textbf{standardizzazione delle variabili}, dove si cambia nome alle variabili quantificate omonime.
+		A questo punto si ottiene una forma simile a quella che avevamo in logica proposizionale, sulla quale si possono eliminare letterali fra di loro complementari, in modo da ridurre fino dagli antecedenti fino al conseguente desiderato.
+\end{itemize}
+
+\TODO % qui una riveduta non farebbe male
 
 \end{document}
