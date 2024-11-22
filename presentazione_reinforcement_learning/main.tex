@@ -1,5 +1,6 @@
 \documentclass{beamer}
 
+
 \title{Reinforcement Learning}
 \author{
     Niccolò Consigli
@@ -43,11 +44,73 @@
 		\item Transition reward: $R(s, a, s')$
 		\item Transition probability: $P(s' \, | \, s, a)$
 	\end{itemize}
+	\begin{center}
+		\includegraphics[scale=0.95]{figures/markov-decisional-process.png}
+	\end{center}
 	\begin{block}{Bellman's equation}
+		Given a discount factor $\gamma \in [0, 1]$, the utility is given by:
 		$$
 		U(s) = \max_{a \in A(s)} \sum_{s'} P(s' \, | \, s, a) \left[ R(s, a, s') + \gamma U(s') \right]
 		$$
 	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Model-based reinforcement learning}
+	We maintain a transition model (an \textbf{MDP}):
+	\begin{itemize}
+		\item Reward function: $R(s, a, s')$
+		\item Probability function: $P(s' \, | \, s, a)$
+		\item Utility function: U(s), maps states to \textbf{utility}
+	\end{itemize}
+	Once the model is learned, we can \textbf{maximize utility}
+	\begin{center}
+		\includegraphics[scale=0.8]{figures/optimal-policy-values.png}
+	\end{center}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Model-free reinforcement learning}
+	\begin{itemize}
+		\item Action-utility function: $Q(s, a)$ maps \textbf{actions} to \textbf{utility}
+		\item Policy search: maps \textbf{states} to \textbf{actions}, essentialy a reflex agent
+	\end{itemize}
+	\begin{center}
+		\includegraphics[scale=0.8]{figures/optimal-policy-arrows.png}
+	\end{center}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Passive reinforcement learning}
+	We can't modify the policy, but we can figure out the utilities $U(s)$
+	\begin{itemize}
+		\item We use \textbf{policy iteration}:
+			$$
+				U^\pi(s) = E\left[ \sum_{t=0}^{+\infty} \gamma^t R(s_t, \pi(s_t), s_{t+1}) \right]
+			$$
+	\end{itemize}
+	Three approaches for approximation:
+	\begin{itemize}
+		\item Direct estimation
+		\item Adaptive dynamic programming
+		\item Temporal difference learning
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Direct estimation}
+	The goal is to approximate state utility under the given policy
+	\begin{itemize}
+		\item Make \textbf{trials} and take the \textbf{reward-to-go} for each state
+	\end{itemize}
+	\begin{block}{Example}
+	$$
+	(1,1) 
+	$$
+	\end{block}
+	\begin{itemize}
+		\item This is inefficient! We can \textbf{exploit} the Markov property 
+	\end{itemize}
 \end{frame}
 
 \end{document}
