@@ -1,0 +1,53 @@
+\documentclass{beamer}
+
+\title{Reinforcement Learning}
+\author{
+    Niccolò Consigli
+		\scriptsize \texttt{n.consigli@studenti.unipi.it}
+		\\
+		\normalsize
+    Luca Seggiani
+		\scriptsize \texttt{l.seggiani@studenti.unipi.it}
+		\normalsize
+	}
+\institute{Università di Pisa}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}
+	\frametitle{A new kind of learning}
+	\begin{itemize}
+		\item<1-> Supervised learning: matching features to labels
+		\item<2-> Unsupervised learning: clustering data
+		\item<3-> \textbf{Reinforcement learning}: learning from rewards
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{What is reinforcement learning (RL)?}
+	\begin{itemize}
+		\item<1-> We give the agent \textbf{rewards} based on its performance
+		\item<2-> Markov property: we can view problems as \textbf{Markov decision processes} (MDPs)
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{A framework: Markov decision processes}
+	\begin{itemize}
+		\item Actions map states to states with a probability distribution
+		\item Transition reward: $R(s, a, s')$
+		\item Transition probability: $P(s' \, | \, s, a)$
+	\end{itemize}
+	\begin{block}{Bellman's equation}
+		$$
+		U(s) = \max_{a \in A(s)} \sum_{s'} P(s' \, | \, s, a) \left[ R(s, a, s') + \gamma U(s') \right]
+		$$
+	\end{block}
+\end{frame}
+
+\end{document}
