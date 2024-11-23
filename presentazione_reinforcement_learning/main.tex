@@ -157,7 +157,7 @@
 	\end{itemize}
 	\pause
 	\begin{block}{Example}
-	We calculate utilities for $(1,3)$ given the trial:
+	We calculate utilities for transiton $(1,3) \rightarrow (2,3)$ given the trial:
 		$$
 		\scriptstyle
 		(1,1) \xrightarrow[\text{Up}]{-0.4} 
@@ -169,13 +169,24 @@
 		(3,3) \xrightarrow[\text{Right}]{+1}
 		(4,3)	
 	$$
+	and the previous utility estimates: $U^\pi(1,3) = 0.88, \ U^\pi(2,3) = 0.96$
 	\pause
 	$$
-		U^\pi (1, 3) = -0.04 + U^\pi (2,3)
+		U^\pi (1, 3)' = -0.04 + U^\pi (2,3)
 	$$
+	\begin{itemize}
+		\item This gives $U^\pi(1,3)' = 0.92$, which means $0.88$ might be a low estimate
+	\end{itemize}	
 	\end{block}
-	\pause
-	Then we can update with learning rate $\alpha$:
+\end{frame}
+
+\begin{frame}
+	\frametitle{Temporal difference learning (continued)}
+	We want to match $U^\pi$ to $U^\pi'$ with learning rate $\alpha$:
+	$$
+		U^\pi(1,3) \leftarrow U^\pi(1,3) + \alpha \left[ U^\pi(1,3)' - U^\pi(1,3) \right]
+	$$
+	Which generalizes to:
 	$$
 	U^\pi(s) \leftarrow U^\pi(s) + \alpha \left[ R(s, \pi(s), s') + \gamma U^\pi (s') - U^\pi (s) \right]
 	$$
