@@ -1,5 +1,6 @@
 \documentclass{beamer}
 
+\DeclareMathOperator*{\argmax}{argmax}
 
 \title{Reinforcement Learning}
 \author{
@@ -111,13 +112,13 @@
 	We calculate utilities for $(1,2)$ given the trial:
 		$$
 		\scriptstyle
-		(1,1) \xrightarrow[\mathrm{Up}]{-0.4} 
-		(1,2) \xrightarrow[\mathrm{Up}]{-0.4}
-		(1,3) \xrightarrow[\mathrm{Right}]{-0.4}
-		(1,2) \xrightarrow[\mathrm{Up}]{-0.4}
-		(1,3) \xrightarrow[\mathrm{Right}]{-0.4}
-		(2,3) \xrightarrow[\mathrm{Right}]{-0.4}
-		(3,3) \xrightarrow[\mathrm{Right}]{+1}
+		(1,1) \xrightarrow[\text{Up}]{-0.4} 
+		(1,2) \xrightarrow[\text{Up}]{-0.4}
+		(1,3) \xrightarrow[\text{Right}]{-0.4}
+		(1,2) \xrightarrow[\text{Up}]{-0.4}
+		(1,3) \xrightarrow[\text{Right}]{-0.4}
+		(2,3) \xrightarrow[\text{Right}]{-0.4}
+		(3,3) \xrightarrow[\text{Right}]{+1}
 		(4,3)
 	$$
 	\pause
@@ -151,19 +152,22 @@
 \begin{frame}
 	\frametitle{Temporal difference learning}
 	Still taking trials, but we \textbf{update} the utility to match frequently observed transitions
+	\begin{itemize}
+		\item We don't need a model!
+	\end{itemize}
 	\pause
 	\begin{block}{Example}
 	We calculate utilities for $(1,3)$ given the trial:
 		$$
 		\scriptstyle
-		(1,1) \xrightarrow[\mathrm{Up}]{-0.4} 
-	(1,2) \xrightarrow[\mathrm{Up}]{-0.4}
-	(1,3) \xrightarrow[\mathrm{Right}]{-0.4}
-	(2,3) \xrightarrow[\mathrm{Right}]{-0.4}
-	(3,3) \xrightarrow[\mathrm{Right}]{-0.04}
-	(3,2) \xrightarrow[\mathrm{Up}]{-0.04}
-	(3,3) \xrightarrow[\mathrm{Right}]{+1}
-	(4,3)	
+		(1,1) \xrightarrow[\text{Up}]{-0.4} 
+		(1,2) \xrightarrow[\text{Up}]{-0.4}
+		(1,3) \xrightarrow[\text{Right}]{-0.4}
+		(2,3) \xrightarrow[\text{Right}]{-0.4}
+		(3,3) \xrightarrow[\text{Right}]{-0.04}
+		(3,2) \xrightarrow[\text{Up}]{-0.04}
+		(3,3) \xrightarrow[\text{Right}]{+1}
+		(4,3)	
 	$$
 	\pause
 	$$
@@ -177,6 +181,158 @@
 	$$
 	\begin{itemize}
 		\item From TD's point of view, ADP is TD with \textit{simulated experiences}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Active reinforcement learning}
+	Utility functions give the best (expected) policy
+	
+	We can decide to improve utility (\textbf{explore}) or keep maximizing utility (\textbf{exploit})
+	\begin{itemize}
+		\item This is a \textbf{bandit problem} (set of Markov reward processes)
+	\end{itemize}
+	\pause
+	\begin{block}{Example}
+		Duolingo's recurring notifications use a bandit problem solver:
+		\begin{columns}
+		\begin{column}{0.4\textwidth}
+			\begin{center}
+				\includegraphics[scale=0.24]{figures/duolingo_notifications.png}
+			\end{center}
+		\end{column}
+		\begin{column}{0.6\textwidth} %
+			\begin{center}
+				\includegraphics[scale=0.25]{figures/duolingo_eligibility.png}
+			\end{center}
+		\end{column}
+		\end{columns}
+	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Greedy in the limit of infinite exploration (GLIE)}
+	A greedy algorithm could ignore higher utility actions.
+	We need a GLIE algorithm:
+	\begin{itemize}
+		\item Each eaction in a each state is tried an unbounded amount of times
+		\item In the limit ($\rightarrow \infty$) the algorithm becomes truly greedy
+	\end{itemize}
+	\pause 
+	We can try different approaches:
+	\begin{itemize}
+		\item<1-> Random sampling
+		\item<2-> Minimum trials
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Random sampling}
+	At step $t$, do the following:
+	\begin{itemize}
+		\item Choose a random action with probability $\frac{1}{t}$
+		\item Otherwise, follow the greedy policy
+	\end{itemize}
+	This \textbf{does} eventually converge, but can be slow: a better approach would use some heuristic on state utility
+\end{frame}
+
+\begin{frame}
+	\frametitle{Minimum trials}
+	Have an \textbf{optimistic estimate} of utility ($U^+(s)$):
+	$$
+	U^+(s) \leftarrow \max_a f \left( \sum_{s'} P(s' \, | \, s, a) \left[ R(s, a, s') + \gamma U^+(s') \right], N(s, a) \right)	
+	$$
+	\begin{itemize}
+		\item $N(s,a)$ is the number of times action $a$ was tried from state $s$
+		\item $f$ is defined as:
+			$$
+				f(u, n) = 
+				\begin{cases}
+					R^+, \quad n < N_e \\ 
+					u, \quad \ \ \, n \geq N_e
+				\end{cases}
+			$$
+			Here, $R^+$ is an optimistic utility for actions tried less than $N_e$ times
+	\end{itemize}
+	Basically, we are estabilishing an optimistic \textbf{prior} that assigns higher utilities to actions tried less than $N_e$ times
+\end{frame}
+
+\begin{frame}
+	\frametitle{Safe exploration}
+	In the real world, we have to look out for:
+	\begin{itemize}
+		\item Large negative rewards
+		\item Absorbing states 
+		\item Permanent damage (e.g. long-term utility losses)
+	\end{itemize}
+	Neither the greedy nor the exploratory approach are optimal!
+	\pause
+	Two ways to solve the problem:
+	\begin{itemize}
+		\item Bayesian reinforcement learning
+		\item Robust control theory approaches
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian reinforcement learning}
+	We take a probabilistic approach, starting with a \textbf{prior} probability $P(h)$ on $h$ hypotheses about what the model \textbf{is}: the policy is then given by the posterior $P(h \, | \, e)$:
+	$$
+		\pi^* = \argmax_\pi \sum_h P(h \, | \, e) U_h^\pi
+	$$
+	\pause
+	\begin{itemize}
+		\item We turned the problem into an exploration \textbf{partially observable Markov decision process} (POMDP)
+		\item Note that this approach assumes that the prior contains good estimates of reality
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{The robust control theory approach}
+	We define a set of models $\mathcal{H}$, and always take the policy that maximizes utility in the \textbf{worst case} over $\mathcal{H}$:
+	$$
+		\pi^* = \argmax_\pi \min_h U_h^\pi
+	$$
+	\pause
+	\begin{itemize}
+		\item This is closely tied to bayesian reinforcement learning: the set $\mathcal{H}$ is the set of models that exceed some likelihood threshold on $P(h \, | \, e)$
+		\item Again, we assume the models to be good estimates of reality
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Temporal difference Q-learning}
+	\begin{itemize}
+		\item<1-> With TD learning, we estimated the utility under a given policy
+		\item<2-> Now we can estimate the action-utility functions in order to improve the policy
+	\end{itemize}
+	\pause
+	\pause
+	We substitute $Q(s,a)$ into Bellman's equation:
+	$$
+		Q(s, a) = \sum_{s'} P(s' | s, a) \left[ R(s, a, s') + \gamma \max_{a'} Q(s', a') \right]
+	$$
+	Now we can derive an update:
+	$$
+	Q(s, a) = Q(s, a) + \alpha \left[ R(s, a, s') + \gamma \max_{a'} Q(s', a') - Q(s, a) \right]
+	$$
+\end{frame}
+
+\begin{frame}
+	\frametitle{SARSA learning}
+	SARSA is a variation of TD Q-learning: instead of assuming the best possible action under known action-utility functions to be taken (\textbf{off-policy}), we wait for the model to actually execute actions (\textbf{on-policy})
+	\begin{itemize}
+		\item We act after $s, a, r, s', a'$ quintuplets
+	\end{itemize}
+	The update is given by:
+	$$
+		Q(s, a) \leftarrow Q(s, a) + \alpha \left[ R(s, a, s') + \gamma Q(s', a') - Q(s, a) \right]
+	$$
+	\pause
+	TD and SARSA are subtly different:
+	\begin{itemize}
+		\item TD learning asks: "What does this action give if i stop using my policy, and take the best action (according to my estimates) from there onwards?"
+		\item SARSA asks: "What did I get when i followed my policy and took this action?" 
 	\end{itemize}
 \end{frame}
 
