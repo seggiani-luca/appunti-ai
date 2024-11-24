@@ -75,7 +75,7 @@
 \begin{frame}
 	\frametitle{Model-free reinforcement learning}
 	\begin{itemize}
-		\item Action-utility function: $Q(s, a)$ maps \textbf{actions} to \textbf{utility}
+		\item Action-utility learning: we learn an action-utility function $Q(s, a)$ that maps \textbf{actions} to \textbf{utility}
 		\item Policy search: maps \textbf{states} to \textbf{actions}, essentialy a reflex agent
 	\end{itemize}
 	\begin{center}
@@ -95,14 +95,14 @@
 	\pause
 	Three approaches for approximation:
 	\begin{itemize}
-		\item Direct estimation
+		\item Direct utility estimation
 		\item Adaptive dynamic programming (ADP)
 		\item Temporal difference learning (TD)
 	\end{itemize}
 \end{frame}
 
 \begin{frame}
-	\frametitle{Direct estimation}
+	\frametitle{Direct utility estimation}
 	The goal is to approximate state utility under the given policy
 	\begin{itemize}
 		\item Make \textbf{trials} and take the \textbf{reward-to-go} for each state
@@ -201,7 +201,7 @@
 	
 	We can decide to improve utility (\textbf{explore}) or keep maximizing utility (\textbf{exploit})
 	\begin{itemize}
-		\item This is a \textbf{bandit problem} (set of Markov reward processes)
+		\item This is a \textbf{multi-armed bandit problem} (set of Markov reward processes)
 	\end{itemize}
 	\pause
 	\begin{block}{Example}
@@ -274,14 +274,15 @@
 	\begin{itemize}
 		\item Large negative rewards
 		\item Absorbing states 
-		\item Permanent damage (e.g. long-term utility losses)
+		\item Irreversible actions 
 	\end{itemize}
 	Neither the greedy nor the exploratory approach are optimal!
 	\pause
-	Two ways to solve the problem:
+	Three ways to solve the problem:
 	\begin{itemize}
 		\item Bayesian reinforcement learning
-		\item Robust control theory approaches
+		\item Partially Observable MDPs
+		\item Robust control theory approach
 	\end{itemize}
 \end{frame}
 
@@ -293,8 +294,8 @@
 	$$
 	\pause
 	\begin{itemize}
-		\item We turned the problem into an exploration \textbf{partially observable Markov decision process} (POMDP)
 		\item Note that this approach assumes that the prior contains good estimates of reality
+		\item We can turn this into an exploration POMDP where belief states are distributions over models
 	\end{itemize}
 \end{frame}
 
@@ -307,7 +308,7 @@
 	\pause
 	\begin{itemize}
 		\item This is closely tied to bayesian reinforcement learning: the set $\mathcal{H}$ is the set of models that exceed some likelihood threshold on $P(h \, | \, e)$
-		\item Again, we assume the models to be good estimates of reality
+		\item In both cases we assume the models to be good estimates of reality
 	\end{itemize}
 \end{frame}
 
@@ -325,7 +326,7 @@
 	$$
 	Now we can derive an update:
 	$$
-	Q(s, a) = Q(s, a) + \alpha \left[ R(s, a, s') + \gamma \max_{a'} Q(s', a') - Q(s, a) \right]
+	Q(s, a) \leftarrow Q(s, a) + \alpha \left[ R(s, a, s') + \gamma \max_{a'} Q(s', a') - Q(s, a) \right]
 	$$
 \end{frame}
 
